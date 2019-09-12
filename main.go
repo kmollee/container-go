@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"os/exec"
 )
 
 // docker run <image> <cmd> <params>
@@ -18,7 +18,14 @@ func main() {
 }
 
 func run() {
-	fmt.Println("run")
+	cmd := exec.Command(os.Args[2], os.Args[3:]...)
+
+	// redirect all in/out file descript to std
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stdin
+
+	must(cmd.Run())
 }
 
 func must(err error) {
