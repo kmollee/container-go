@@ -33,8 +33,11 @@ func run() {
 
 	// setup namespaces
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		// CLONE_NEWUTS new hostname
-		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
+		// CLONE_NEWUTS: new hostname
+		// CLONE_NEWNS: Unshare the mount namespace, so that the calling process has
+		// a private copy of its namespace which is not shared with any other process
+		Cloneflags:   syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+		Unshareflags: syscall.CLONE_NEWNS, // not visible to host
 	}
 
 	must(cmd.Run())
