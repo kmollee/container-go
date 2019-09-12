@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strconv"
 	"syscall"
 )
 
@@ -45,6 +48,8 @@ func run() {
 
 func child() {
 	fmt.Printf("Running %v as PID:%d\n", os.Args[2:], os.Getpid())
+
+	cg("newhost")
 	must(syscall.Sethostname([]byte("newhost")))
 	must(syscall.Chroot("./chroot"))
 	must(syscall.Chdir("/"))
@@ -57,6 +62,15 @@ func child() {
 	cmd.Stderr = os.Stdin
 
 	must(cmd.Run())
+}
+
+// create cgroup
+func cg(name string) {
+	pids := "/sys/fs/cgroup/pids"
+	os.Mkdir(filepath.Join(pids, name), 0755)
+
+	must(ioutil.WriteFile(filepath.Join(pids, name, "pids.max"), []byte("20"), 0700))
+	must(ioutil.WriteFile(filepath.Join(pids, name, "cgroup.procs"), []byte(strconv.Itoa(os.Getpid())), 0700))
 }
 
 func must(err error) {
