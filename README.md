@@ -26,6 +26,29 @@ $ cat /sys/fs/cgroup/memory/memory.limit_in_bytes
 9223372036854771712
 ```
 
+## chroot 製作
+
+```sh
+mkdir -p chroot/bin
+cd chroot
+cp /bin/busybox bin/
+sudo chroot . /bin/busybox sh                                                                                       Thu 08 Mar 2018 08:45:56 PM CST
+
+BusyBox v1.22.1 (Ubuntu 1:1.22.0-15ubuntu1) built-in shell (ash)
+Enter 'help' for a list of built-in commands.
+
+/ # ls
+bin
+/ # mkdir proc sys tmp dev etc
+/ # ls
+bin   dev   etc   proc  sys   tmp
+/ # touch init
+/ # chmod 755 init
+/ # echo "sh" >> init
+/ # echo "restart -f" >> init
+/ # /bin/busybox --install -s /bin
+```
+
 
 ## ref
 
