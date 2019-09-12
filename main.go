@@ -22,7 +22,7 @@ func main() {
 }
 
 func run() {
-	fmt.Printf("Running %v\n", os.Args[2:])
+	fmt.Printf("Running %v as PID:%d\n", os.Args[2:], os.Getpid())
 	// cmd := exec.Command(os.Args[2], os.Args[3:]...)
 	cmd := exec.Command("/proc/self/exe", append([]string{"child"}, os.Args[2:]...)...)
 
@@ -34,16 +34,19 @@ func run() {
 	// setup namespaces
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		// CLONE_NEWUTS new hostname
-		Cloneflags: syscall.CLONE_NEWUTS,
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
 	}
 
 	must(cmd.Run())
 }
 
 func child() {
-
-	fmt.Println("child")
+	fmt.Printf("Running %v as PID:%d\n", os.Args[2:], os.Getpid())
 	must(syscall.Sethostname([]byte("newhost")))
+	must(syscall.Chroot("./chroot"))
+	must(syscall.Chdir("/"))
+	must(syscall.Mount("proc", "proc", "proc", 0, ""))
+	defer syscall.Unmount("proc", 0)
 	cmd := exec.Command(os.Args[2], os.Args[3:]...)
 	// redirect all in/out file descript to std
 	cmd.Stdin = os.Stdin
